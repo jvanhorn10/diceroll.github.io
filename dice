@@ -1,0 +1,186 @@
+import React, { useState } from 'react';
+
+const DiceRoller = () => {
+  const [diceResult, setDiceResult] = useState(null);
+  const [isRolling, setIsRolling] = useState(false);
+  const [currentStation, setCurrentStation] = useState('');
+  const [nextDestination, setNextDestination] = useState('');
+  const [nitrogenForm, setNitrogenForm] = useState('');
+
+  const stations = [
+    { name: "Atmosphere", value: "atmosphere" },
+    { name: "Lake", value: "lake" },
+    { name: "Rain", value: "rain" },
+    { name: "Fertilizers", value: "fertilizers" },
+    { name: "Soil", value: "soil" },
+    { name: "Ocean", value: "ocean" },
+    { name: "Live Animals", value: "live-animals" },
+    { name: "Animal Waste", value: "animal-waste" },
+    { name: "Dead Plants and Animals", value: "dead-plants-animals" },
+    { name: "Live Plants", value: "live-plants" },
+    { name: "Humans", value: "humans" }
+  ];
+
+  const stationResults = {
+    atmosphere: [
+      { roll: 1, result: "A storm rolls in and lightning strikes! N₂ in the atmosphere combines with oxygen and becomes N₂O. It starts to rain and you end up in the soil.", destination: "Soil", form: "N₂O" },
+      { roll: 2, result: "Blue green algae and bacteria convert you into NH₃ for seaweed, bringing you into the ocean.", destination: "Ocean", form: "NH₃" },
+      { roll: [3, 4, 5], result: "Humans extract N₂ from the air.", destination: "Humans", form: "N₂" },
+      { roll: 6, result: "Bacteria extract you from the air and bring you to the soil in the form of NO₃.", destination: "Soil", form: "NO₃" }
+    ],
+    lake: [
+      { roll: [1, 2, 3], result: "You are NO₃ which plants need to live. You are absorbed by the roots and now are within a live plant.", destination: "Live Plants", form: "NO₃" },
+      { roll: [4, 5, 6], result: "You travel through a connecting river and eventually make it into the ocean as NO₃.", destination: "Ocean", form: "NO₃" }
+    ],
+    rain: [
+      { roll: [1, 2], result: "You fall into a lake as NO₃.", destination: "Lake", form: "NO₃" },
+      { roll: [3, 4], result: "You fall on land and become part of the soil as NO₃.", destination: "Soil", form: "NO₃" },
+      { roll: [5, 6], result: "You fall into the ocean as NH₃.", destination: "Ocean", form: "NH₃" }
+    ],
+    fertilizers: [
+      { roll: [1, 2], result: "You dissolve into NO₃ and wash into a lake.", destination: "Lake", form: "NO₃" },
+      { roll: [3, 4], result: "You are NO₃, the exact form of nitrogen that plants need to live. A flower's roots absorb you and you are now within a live plant.", destination: "Live Plants", form: "NO₃" },
+      { roll: [5, 6], result: "You are released as N₂O in the process of denitrification and end up in the atmosphere.", destination: "Atmosphere", form: "N₂O" }
+    ],
+    soil: [
+      { roll: [1, 2], result: "You become part of a protein and wash into a lake.", destination: "Lake", form: "Protein" },
+      { roll: [3, 4], result: "You are NO₃, the exact form of nitrogen that plants need to live. A flower's roots absorb you and you are now within a live plant.", destination: "Live Plants", form: "NO₃" },
+      { roll: [5, 6], result: "Bacteria have transformed you into nitrogen gas (N₂) and you are now part of the atmosphere.", destination: "Atmosphere", form: "N₂" }
+    ],
+    ocean: [
+      { roll: 1, result: "A big storm washes you inside of a wave onto land and you flow into a small lake.", destination: "Lake", form: "NO₃" },
+      { roll: [2, 3], result: "You are NO₃, the exact form of nitrogen that seaweed needs to live. The seaweed absorbs you and you are now within a live plant.", destination: "Live Plants", form: "NO₃" },
+      { roll: [4, 5, 6], result: "Bacteria have transformed you into nitrogen gas (N₂) and you are now part of the atmosphere.", destination: "Atmosphere", form: "N₂" }
+    ],
+    "live-animals": [
+      { roll: [1, 2, 3], result: "The animal that you are within has died. Go to dead plants and animals as NH₄.", destination: "Dead Plants and Animals", form: "NH₄" },
+      { roll: [4, 5, 6], result: "The animal you are within has peed or pooped. You are now in animal waste as urea.", destination: "Animal Waste", form: "Urea" }
+    ],
+    "animal-waste": [
+      { roll: [1, 2], result: "Bacteria and fungi break you down into NH₄. You have decomposed into the soil.", destination: "Soil", form: "NH₄" },
+      { roll: [3, 4], result: "A farming supply company has scooped you up and put you into fertilizer as NH₃.", destination: "Fertilizers", form: "NH₃" },
+      { roll: [5, 6], result: "It rains and you dissolve into the runoff as NH₄ and flow until you reach a lake.", destination: "Lake", form: "NH₄" }
+    ],
+    "dead-plants-animals": [
+      { roll: [1, 2], result: "Bacteria and fungi break you down and you decompose into NH₄ in the soil.", destination: "Soil", form: "NH₄" },
+      { roll: 3, result: "Bacteria and fungi break you down and you decompose into NO₃. It rains and you dissolve in the rainwater until flowing into the ocean.", destination: "Ocean", form: "NO₃" },
+      { roll: 4, result: "Bacteria and fungi break you down and you decompose into NO₃. It rains and you dissolve in the rainwater until flowing into a lake.", destination: "Lake", form: "NO₃" },
+      { roll: [5, 6], result: "A tree absorbs you through its roots. Unfortunately it gets caught on fire when it gets struck by lightning. You are released into the atmosphere as N₂O.", destination: "Atmosphere", form: "N₂O" }
+    ],
+    "live-plants": [
+      { roll: [1, 2, 3], result: "The plant that you are within has died. Go to dead plants and animals as NH₄.", destination: "Dead Plants and Animals", form: "NH₄" },
+      { roll: [4, 5, 6], result: "An animal has eaten the plant you are in as NO₃. You are now in a live animal.", destination: "Live Animals", form: "NO₃" }
+    ],
+    humans: [
+      { roll: [1, 2, 3], result: "You are used as a fuel source to power a car. During the process of combustion, you are released as N₂O into the atmosphere.", destination: "Atmosphere", form: "N₂O" },
+      { roll: [4, 5], result: "You are assimilated into a human's body as DNA or RNA. Stay at humans.", destination: "Humans", form: "DNA/RNA" },
+      { roll: 6, result: "You are converted into NH₃ and used in a fertilizer.", destination: "Fertilizers", form: "NH₃" }
+    ]
+  };
+
+  const rollDice = () => {
+    if (!currentStation) {
+      alert("Please select a station first");
+      return;
+    }
+
+    setIsRolling(true);
+    setDiceResult(null);
+    setNextDestination('');
+    setNitrogenForm('');
+
+    // Simulate dice roll animation
+    let counter = 0;
+    const rollInterval = setInterval(() => {
+      counter++;
+      setDiceResult(Math.floor(Math.random() * 6) + 1);
+      
+      if (counter >= 10) {
+        clearInterval(rollInterval);
+        setIsRolling(false);
+        
+        // Final roll result
+        const finalRoll = Math.floor(Math.random() * 6) + 1;
+        setDiceResult(finalRoll);
+        
+        // Find the matching result
+        const stationData = stationResults[currentStation];
+        const result = stationData.find(item => 
+          Array.isArray(item.roll) 
+            ? item.roll.includes(finalRoll) 
+            : item.roll === finalRoll
+        );
+        
+        if (result) {
+          setNextDestination(result.destination);
+          setNitrogenForm(result.form);
+        }
+      }
+    }, 100);
+  };
+
+  return (
+    <div className="flex flex-col items-center p-6 bg-blue-50 rounded-lg shadow-md max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold text-blue-800 mb-4">Nitrogen Cycle Digital Dice</h2>
+      
+      <div className="w-full mb-6">
+        <label className="block text-gray-700 font-semibold mb-2">
+          Current Location:
+        </label>
+        <select 
+          className="w-full p-2 border border-gray-300 rounded"
+          value={currentStation}
+          onChange={(e) => setCurrentStation(e.target.value)}
+        >
+          <option value="">Select a station</option>
+          {stations.map((station) => (
+            <option key={station.value} value={station.value}>
+              {station.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      <button
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full mb-6 transition duration-200 text-lg"
+        onClick={rollDice}
+        disabled={isRolling}
+      >
+        {isRolling ? "Rolling..." : "Roll the Dice!"}
+      </button>
+      
+      {diceResult && (
+        <div className="flex flex-col items-center mb-6">
+          <div className="bg-white w-20 h-20 rounded-lg shadow-inner border-2 border-gray-300 flex items-center justify-center mb-4">
+            <span className="text-4xl font-bold text-blue-600">{diceResult}</span>
+          </div>
+          
+          {currentStation && stationResults[currentStation] && (
+            <div className="bg-white p-4 rounded shadow-md w-full">
+              <p className="text-gray-800 mb-4">
+                {stationResults[currentStation].find(item => 
+                  Array.isArray(item.roll) 
+                    ? item.roll.includes(diceResult) 
+                    : item.roll === diceResult
+                )?.result || "No result found"}
+              </p>
+              
+              {nextDestination && (
+                <div className="border-t pt-3">
+                  <p className="font-semibold">Next destination: <span className="text-blue-600">{nextDestination}</span></p>
+                  <p className="font-semibold">Nitrogen form: <span className="text-green-600">{nitrogenForm}</span></p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      
+      <div className="text-sm text-gray-600 text-center">
+        <p>After rolling, record your results in the form. This will help you track your journey through the nitrogen cycle.</p>
+      </div>
+    </div>
+  );
+};
+
+export default DiceRoller;
